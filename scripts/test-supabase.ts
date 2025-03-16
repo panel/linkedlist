@@ -66,17 +66,22 @@ async function main() {
   
   // Test 1: Connection test
   console.log('\n1. Testing database connection...');
-  const { data: connectionTest, error: connectionError } = await supabase
-    .from('user')
-    .select('count(*)')
-    .limit(1);
-    
-  if (connectionError) {
-    console.error('❌ Connection test failed:', connectionError.message);
+  try {
+    // Instead of using count(*), just select a single row to verify connection
+    const { data, error } = await supabase
+      .from('user')
+      .select('*')
+      .limit(1);
+      
+    if (error) {
+      console.error('❌ Connection test failed:', error.message);
+      process.exit(1);
+    }
+    console.log('✅ Connected to Supabase successfully!');
+  } catch (error: any) {
+    console.error('❌ Connection test failed:', error.message);
     process.exit(1);
   }
-  
-  console.log('✅ Connected to Supabase successfully!');
   
   // Test 2: Create a test user
   const testUserId = `test-${uuidv4()}`;
@@ -218,22 +223,28 @@ async function main() {
     process.exit(1);
   }
   
-  const labelIds = linkLabels.map(ll => ll.label_id);
+  let retrievedLabels = [];
   
-  const { data: retrievedLabels, error: labelsError } = await supabase
-    .from('label')
-    .select('*')
-    .in('id', labelIds);
+  if (linkLabels && linkLabels.length > 0) {
+    const labelIds = linkLabels.map(ll => ll.label_id);
+  
+    const { data: labels, error: labelsError } = await supabase
+      .from('label')
+      .select('*')
+      .in('id', labelIds);
+      
+    if (labelsError) {
+      console.error('❌ Labels retrieval failed:', labelsError.message);
+      await cleanup(supabase, testUserId);
+      process.exit(1);
+    }
     
-  if (labelsError) {
-    console.error('❌ Labels retrieval failed:', labelsError.message);
-    await cleanup(supabase, testUserId);
-    process.exit(1);
+    retrievedLabels = labels || [];
   }
   
   console.log('✅ Data retrieval successful:');
   console.log(`   - Retrieved link: ${retrievedLink.title}`);
-  console.log(`   - Retrieved ${retrievedNotes.length} notes`);
+  console.log(`   - Retrieved ${retrievedNotes?.length || 0} notes`);
   console.log(`   - Retrieved ${retrievedLabels.length} labels`);
   
   // Clean up test data

@@ -16,7 +16,8 @@
 		"test": "npm run test:unit -- --run",
 		"db:push": "drizzle-kit push",
 		"db:migrate": "drizzle-kit migrate",
-		"db:studio": "drizzle-kit studio"
+		"db:studio": "drizzle-kit studio",
+		"test:supabase": "node --loader ts-node/esm scripts/test-supabase-connection.ts"
 	},
 	"devDependencies": {
 		"@eslint/compat": "^1.2.5",
@@ -42,6 +43,7 @@
 		"svelte": "^5.0.0",
 		"svelte-check": "^4.0.0",
 		"tailwindcss": "^4.0.0",
+		"ts-node": "^10.9.2",
 		"typescript": "^5.0.0",
 		"typescript-eslint": "^8.20.0",
 		"vite": "^6.0.0",

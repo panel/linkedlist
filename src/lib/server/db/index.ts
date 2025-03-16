@@ -15,9 +15,9 @@ import { supabase, canUseSupabase } from './supabase';
 // Check if we have a valid database URL
 const databaseUrl = env.DATABASE_URL;
 const hasValidDbUrl = databaseUrl && !databaseUrl.includes('user:password@host');
-
-// Check if we should use mock data based on environment or explicit flag
-const shouldUseMockData = env.USE_MOCK_DATA === 'true' || !hasValidDbUrl;
+// Check if we should use mock data based on environment or explicit flags
+// Priority: USE_MOCK_DATA > USE_REAL_DATA > valid URL check
+const shouldUseMockData = env.USE_MOCK_DATA === 'true' || (env.USE_REAL_DATA === 'false') || !hasValidDbUrl;
 
 // Initialize Drizzle with PostgreSQL if we have a valid connection
 let postgresClient: ReturnType<typeof postgres> | undefined;
