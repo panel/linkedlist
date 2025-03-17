@@ -50,10 +50,13 @@
 		"vitest": "^3.0.0"
 	},
 	"dependencies": {
+		"@lucia-auth/adapter-drizzle": "^1.1.0",
+		"@lucia-auth/oauth": "^3.5.3",
 		"@oslojs/crypto": "^1.0.1",
 		"@oslojs/encoding": "^1.1.0",
 		"@supabase/supabase-js": "^2.49.1",
 		"drizzle-orm": "^0.40.0",
+		"lucia": "^3.2.2",
 		"postgres": "^3.4.5",
 		"uuid": "^11.1.0"
 	}

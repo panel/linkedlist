@@ -6,16 +6,57 @@ import { readable, writable, derived } from 'svelte/store';
 import type { User, Link, Note, Label, LinkFull } from '$lib/types';
 // Import our API layer which will access either mock or real data based on environment settings
 import * as api from '$lib/api';
+import { goto } from '$app/navigation';
 
-// Mock current user until we have proper auth
-const mockUser: User = {
-  id: 'user-1',
-  email: 'demo@example.com',
-  createdAt: new Date()
-};
+// User store - will be updated with actual user information through hooks
+export const user = writable<User | null>(null);
 
-// User store
-export const user = readable<User>(mockUser);
+// Authentication store
+function createAuthStore() {
+  const { subscribe, set, update } = writable({
+    isAuthenticated: false,
+    isLoading: true
+  });
+
+  return {
+    subscribe,
+    check: async () => {
+      set({ isAuthenticated: false, isLoading: true });
+      
+      try {
+        // Call API endpoint to check if user is authenticated
+        const response = await fetch('/api/auth/me');
+        const data = await response.json();
+        
+        set({
+          isAuthenticated: !!data.authenticated,
+          isLoading: false
+        });
+        
+        return data.authenticated;
+      } catch (error) {
+        console.error('Error checking authentication:', error);
+        set({ isAuthenticated: false, isLoading: false });
+        return false;
+      }
+    },
+    logout: async () => {
+      set({ isAuthenticated: false, isLoading: true });
+      
+      try {
+        // Use our logout endpoint
+        await fetch('/auth/logout');
+        set({ isAuthenticated: false, isLoading: false });
+        goto('/login');
+      } catch (error) {
+        console.error('Error during logout:', error);
+        set({ isAuthenticated: false, isLoading: false });
+      }
+    }
+  };
+}
+
+export const auth = createAuthStore();
 
 // Links store
 function createLinksStore() {
@@ -271,34 +312,3 @@ function createFilteredLinksStore() {
 }
 
 export const filteredLinks = createFilteredLinksStore();
-
-// Authentication store (mock)
-function createAuthStore() {
-  const { subscribe, set } = writable({
-    isAuthenticated: true,
-    isLoading: false
-  });
-
-  return {
-    subscribe,
-    login: async (email: string, password: string) => {
-      set({ isAuthenticated: false, isLoading: true });
-      
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 800));
-      
-      set({ isAuthenticated: true, isLoading: false });
-      return true;
-    },
-    logout: async () => {
-      set({ isAuthenticated: false, isLoading: true });
-      
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      set({ isAuthenticated: false, isLoading: false });
-    }
-  };
-}
-
-export const auth = createAuthStore();
